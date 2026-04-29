@@ -71,10 +71,11 @@ export class SessionService {
 
   // ─── MongoDB: Foydalanuvchi yaratish / topish ────────────────
   async findOrCreateUser(telegramId: number, firstName: string): Promise<UserDocument> {
-    let user = await this.userModel.findOne({ telegramId });
-    if (!user) {
-      user = await this.userModel.create({ telegramId, firstName });
-    }
+    const user = await this.userModel.findOneAndUpdate(
+      { telegramId },
+      { $setOnInsert: { telegramId, firstName } },
+      { upsert: true, new: true },
+    );
     return user;
   }
 
