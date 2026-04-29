@@ -3,8 +3,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.init();
-  console.log('🤖 Matematik bot ishga tushdi!');
+  const PORT = process.env.PORT || 3000;
+  await app.listen(PORT, '0.0.0.0');
+  console.log(`🤖 Matematik bot ishga tushdi! Port: ${PORT}`);
 }
 
 bootstrap();
