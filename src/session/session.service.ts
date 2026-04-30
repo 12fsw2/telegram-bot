@@ -74,7 +74,7 @@ export class SessionService {
     const user = await this.userModel.findOneAndUpdate(
       { telegramId },
       { $setOnInsert: { telegramId, firstName } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' }, // ✅ 'new: true' o'rniga
     );
     return user;
   }

@@ -21,10 +21,13 @@ export class BotService implements OnModuleInit {
     this.botUpdate.register(this.bot);
 
     try {
-      await this.bot.launch();
+      this.bot.launch().catch((err) => {
+        this.logger.error('Bot launch xatosi:', err);
+      });
+
       this.logger.log('🤖 Matematik bot ishga tushdi!');
     } catch (err) {
-      this.logger.error('Bot launch xatosi:', err);
+      this.logger.error('Bot xatosi:', err);
     }
 
     process.once('SIGINT', () => this.bot.stop('SIGINT'));

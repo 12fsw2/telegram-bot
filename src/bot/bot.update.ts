@@ -13,12 +13,28 @@ export class BotUpdate {
   ) {}
 
   register(bot: Telegraf) {
+    // ─── Global: Eskirgan callback query'larni ushlab olish ───
+    bot.use(async (ctx, next) => {
+      if ('callback_query' in ctx.update) {
+        try {
+          await next();
+        } catch (error) {
+          if (error?.response?.error_code === 400) {
+            this.logger.warn('Eskirgan callback query o\'tkazib yuborildi');
+            return;
+          }
+          this.logger.error('Callback query xatosi:', error);
+        }
+      } else {
+        return next();
+      }
+    });
+
     // ─── /start ───────────────────────────────────────────────
     bot.start(async (ctx) => {
       const name = ctx.from?.first_name ?? 'Do\'st';
       const userId = ctx.from!.id;
 
-      // MongoDB ga saqlash
       await this.sessionService.findOrCreateUser(userId, name);
 
       await ctx.reply(
@@ -241,13 +257,9 @@ export class BotUpdate {
     else if (correct >= 4) { emoji = '😐'; comment = 'O\'rtacha natija.'; }
     else { emoji = '💪'; comment = 'Ko\'proq mashq kerak!'; }
 
-    // MongoDB ga saqlash
     await this.sessionService.saveResult(userId, correct);
-
-    // Qiyinlikni tozalash — keyingi testda qayta so'raladi
     this.sessionService.clearDifficulty(userId);
 
-    // Tarix
     const historyText = history
       .map((h, i) => {
         const icon = h.isCorrect ? '✅' : '❌';
