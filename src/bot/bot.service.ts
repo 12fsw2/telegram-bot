@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { Telegraf, Context } from 'telegraf';
+import { Telegraf } from 'telegraf';
 import { BotUpdate } from './bot.update';
 
 @Injectable()
@@ -8,18 +8,26 @@ export class BotService implements OnModuleInit {
   public bot: Telegraf;
 
   constructor(private readonly botUpdate: BotUpdate) {
-    this.bot = new Telegraf(process.env.BOT_TOKEN!);
+    const token = process.env.BOT_TOKEN;
+
+    if (!token) {
+      throw new Error('BOT_TOKEN topilmadi');
+    }
+
+    this.bot = new Telegraf(token);
   }
 
- async onModuleInit() {
-  this.botUpdate.register(this.bot);
+  async onModuleInit() {
+    this.botUpdate.register(this.bot);
 
-  process.once('SIGINT', () => this.bot.stop('SIGINT'));
-  process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
+    try {
+      await this.bot.launch();
+      this.logger.log('🤖 Matematik bot ishga tushdi!');
+    } catch (err) {
+      this.logger.error('Bot launch xatosi:', err);
+    }
 
-  // launch() ni background da ishlatish
-  this.bot.launch().catch((err) => this.logger.error('Bot xatosi:', err));
-  
-  this.logger.log('🤖 Matematik bot ishga tushdi!');
-}
+    process.once('SIGINT', () => this.bot.stop('SIGINT'));
+    process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
+  }
 }
