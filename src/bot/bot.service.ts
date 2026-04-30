@@ -20,15 +20,14 @@ export class BotService implements OnModuleInit {
   async onModuleInit() {
     this.botUpdate.register(this.bot);
 
-    try {
-      this.bot.launch().catch((err) => {
-        this.logger.error('Bot launch xatosi:', err);
-      });
-
-      this.logger.log('🤖 Matematik bot ishga tushdi!');
-    } catch (err) {
-      this.logger.error('Bot xatosi:', err);
+    // Webhook o'rnatish
+    const webhookUrl = process.env.WEBHOOK_URL;
+    if (webhookUrl) {
+      await this.bot.telegram.setWebhook(`${webhookUrl}/webhook`);
+      this.logger.log(`✅ Webhook o'rnatildi: ${webhookUrl}/webhook`);
     }
+
+    this.logger.log('🤖 FastFood Bot ishga tushdi!');
 
     process.once('SIGINT', () => this.bot.stop('SIGINT'));
     process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
